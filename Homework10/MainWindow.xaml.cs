@@ -12,7 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TelegramMesageClient;
+using System.Xml.Linq;
+//using TelegramMesageClient;
 
 namespace Homework10
 {
@@ -21,14 +22,34 @@ namespace Homework10
     /// </summary>
     public partial class MainWindow : Window
     {
-        TelegramMessageClient telegramMessageClient = new TelegramMessageClient();
-        int i = 0;
+        TelegramMessageClient client;
         public MainWindow()
         {
             InitializeComponent();
-            
+            client = new TelegramMessageClient(this);
+            logList.ItemsSource = client.BotMessageLog;
             
         }
 
+        private void btnMsgSendClick(object sender, RoutedEventArgs e)
+        {
+            client.SendSMS(txtMsgSend.Text, long.Parse(TargetSend.Text));
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            XElement xMessages = new XElement("Log");
+            foreach(var x in client.BotMessageLog)
+            {
+                XElement xMessage = new XElement("Message");
+                xMessage.Add(new XAttribute("ID", x.ID));
+                xMessage.Add(new XAttribute("Nickname", x.FirstName));
+                xMessage.Add(new XAttribute("Time", DateTime.Now.ToString()));
+                xMessage.Add(new XAttribute("Text", x.Msg));
+                xMessages.Add(xMessage);
+            }
+
+            xMessages.Save("table.xml");
+        }
     }
 }
